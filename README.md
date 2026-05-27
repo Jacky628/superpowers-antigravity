@@ -1,5 +1,10 @@
 # Antigravity Superpowers
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![Upstream](https://img.shields.io/badge/upstream-obra%2Fsuperpowers-blue.svg)](https://github.com/obra/superpowers)
+[![Aligned with](https://img.shields.io/badge/aligned%20with-v5.1.0-green.svg)](https://github.com/obra/superpowers/releases)
+[![Platform](https://img.shields.io/badge/platform-Antigravity-8A2BE2.svg)](https://github.com/Jacky628/superpowers-antigravity)
+
 这个目录包含了从 [Superpowers](https://github.com/obra/superpowers) 移植到 **Antigravity** 环境的核心能力集。
 
 ## 什么是 Superpowers？

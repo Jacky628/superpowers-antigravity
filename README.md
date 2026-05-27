@@ -13,9 +13,18 @@ Superpowers 是一套结构化的软件开发工作流，通过一系列互相�
 ## 如何在 Antigravity 中使用？
 
 ### 1. 安装与设置
-Antigravity 依赖项目根目录下的 `.agent` 目录来识别技能和工作流。
-- **目录要求**：请将本仓库中的 `skills` 、 `workflows`和 `rules` 文件夹移动到项目根目录的 `.agent/` 目录下（如果该目录不存在，请手动创建）。
-- **刷新配置**：在移动或更新 Workflows 后，您需要前往 Antigravity 的 **Customizations** 页面点击 **Refresh** 按钮，以确保斜杠命令生效。
+
+Antigravity 的全局与工作区级自定义位置不同（路径以官方文档为准）：
+
+**全局安装（所有项目可用，推荐）**
+- **Skills** → 复制 `skills/*` 到 `~/.gemini/antigravity/skills/`（Agent 按名称自动发现）。
+- **Workflows** → 复制 `workflows/*.md` 到 `~/.gemini/antigravity/global_workflows/`（注意是 `global_workflows`，斜杠命令名 = 文件名）。
+- **Rules** → 全局规则的唯一位置是 `~/.gemini/GEMINI.md`；把本仓库 `GEMINI.md` 中 `<!-- BEGIN/END superpowers -->` 之间的段落**追加**进去（保留你已有内容）。
+
+**工作区级安装（按项目隔离）**
+- 将 `rules/`、`workflows/` 放到项目根目录的 `.agent/`（即 `<workspace>/.agent/rules/`、`<workspace>/.agent/workflows/`）；Skills 仍走上面的全局目录。
+
+**刷新配置**：安装或更新后，前往 Antigravity 右上角 `...` → **Customizations** 点击 **Refresh**；若新文件不显示，完全重启 Antigravity。
 
 ### 2. 自动技能加载 (Skills)
 Antigravity 会自动检索 `.agent/skills/` 目录。在处理任务时，Agent 会根据需要自动加载并遵循相关技能指令。

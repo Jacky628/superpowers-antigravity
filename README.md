@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Upstream](https://img.shields.io/badge/upstream-obra%2Fsuperpowers-blue.svg)](https://github.com/obra/superpowers)
-[![Aligned with](https://img.shields.io/badge/aligned%20with-v5.1.0-green.svg)](https://github.com/obra/superpowers/releases)
+[![Aligned with](https://img.shields.io/badge/aligned%20with-v5.1.0-green.svg)](https://github.com/obra/superpowers/releases/tag/v5.1.0)
 [![Platform](https://img.shields.io/badge/platform-Antigravity-8A2BE2.svg)](https://github.com/Jacky628/superpowers-antigravity)
 
 这个目录包含了从 [Superpowers](https://github.com/obra/superpowers) 移植到 **Antigravity** 环境的核心能力集。
@@ -39,7 +39,8 @@ Antigravity 会自动检索 `.agent/skills/` 目录。在处理任务时，Agent
 
 ## 移植说明
 
-- **基线版本**：本能力集对齐上游 Superpowers **v5.1.0**。
+- **基线版本**：本能力集对齐上游 Superpowers [**v5.1.0**](https://github.com/obra/superpowers/releases/tag/v5.1.0)（截至 2026-05-27 为上游最新发布版本）。徽章中的 `aligned with v5.1.0` 即指此基线；同步到上游新版本时需手动更新徽章与本说明。
+- **一致性**：除下列「未移植 / 适配」的刻意改动外，各 `SKILL.md` 内容与上游 v5.1.0 保持一致。
 - **规则文件适配**：上游引用的 `CLAUDE.md` 在本移植中统一替换为 Antigravity 的规则文件 `superpowers-rule.md`。
 - **工具名映射**：skills 仍使用 Claude Code 的工具名；Antigravity（Gemini 系工具）的对应关系见 `skills/using-superpowers/references/antigravity-tools.md`。
 - **产物路径**（与 v5 一致）：设计规格写入 `docs/superpowers/specs/`，实施计划写入 `docs/superpowers/plans/`。

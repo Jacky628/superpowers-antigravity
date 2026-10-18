@@ -1,51 +1,31 @@
-# Antigravity Tool Mapping
+# Antigravity (`agy`) Tool Mapping
 
-Skills are written using Claude Code tool names. Antigravity runs on Gemini-family tooling, so when a skill references one of these tools, use the Antigravity equivalent:
+Skills speak in actions ("dispatch a subagent", "create a todo", "read a file"). On Antigravity (`agy`) these resolve to the native tools below.
 
-| Skill references | Antigravity equivalent |
-|-----------------|------------------------|
-| `Read` (file reading) | `view_file` |
-| `Write` (file creation) | `write_to_file` |
-| `Edit` (file editing) | `replace_file_content` / `multi_replace_file_content` |
-| `Bash` (run commands) | `run_command` |
-| `Grep` (search file content) | `grep_search` |
-| `Glob` (search files by name) | `find_by_name` |
-| `TodoWrite` (task tracking) | Task artifact (`task.md`) or inline checklist |
-| `Skill` tool (invoke a skill) | Read the skill's `SKILL.md` via `view_file` using the exact path in `<skills>` |
-| `WebSearch` | `search_web` |
-| `WebFetch` | `read_url_content` |
-| `AskUserQuestion` / `ask_user` | `ask_question` |
-| `Task` tool (dispatch subagent) | `invoke_subagent` (see [Subagent support](#subagent-support)) |
+| Action / Skill reference | Antigravity equivalent |
+|--------------------------|------------------------|
+| Dispatch a subagent (`Subagent (general-purpose):` template) | `invoke_subagent` with a built-in `TypeName` — `self` for full-capability work, `research` for read-only (and `send_message` / `manage_subagents` for follow-up) |
+| Task tracking ("create a todo", "mark complete") | a **task artifact** — `write_to_file` with `IsArtifact: true` and `ArtifactType: "task"` (see [Task tracking](#task-tracking)). **Not** `manage_task`, which manages background processes. |
+| Invoke / load a skill | Read the skill's `SKILL.md` via `view_file` using the exact path in `<skills>` |
+| Read a file (`Read`) | `view_file` (or `view_file_outline` / `view_code_item` for symbols) |
+| Create or overwrite a file (`Write`) | `write_to_file` |
+| Edit an existing file (`Edit`) | `replace_file_content` / `multi_replace_file_content` |
+| Run shell commands (`Bash`) | `run_command` (and `manage_task` to check/interact with background commands) |
+| Search file content / file names (`Grep` / `Glob`) | `grep_search` / `find_by_name` (`list_dir` for directory listing) |
+| Web search / fetch URL (`WebSearch` / `WebFetch`) | `search_web` / `read_url_content` |
+| Ask user structured questions (`AskUserQuestion`) | `ask_question` |
 
-## Subagent support
+## Task tracking
 
-Antigravity supports subagents via the `invoke_subagent` tool (and follow-up communication via `send_message` / `manage_subagents`). Built-in subagent types include `self` (full capabilities inherited from parent agent) and `research` (read-only exploration).
+Antigravity has **no todo tool** (`manage_task` manages background
+processes — `list`/`kill`/`status`/`send_input` — it is *not* a checklist). When a
+skill says to create a todo list or track tasks, maintain a **task artifact**: a
+markdown checklist saved with `write_to_file` (`IsArtifact: true`,
+`ArtifactMetadata.ArtifactType: "task"`), edited with `replace_file_content` /
+`multi_replace_file_content` as you go.
 
-When a skill says to dispatch a named agent type, invoke `self` via `invoke_subagent` with the full prompt from the skill's prompt template:
-
-| Skill instruction | Antigravity equivalent |
-|-------------------|------------------------|
-| `Task tool (superpowers:implementer)` | `invoke_subagent` (`TypeName: "self"`) with the filled `implementer-prompt.md` template |
-| `Task tool (superpowers:spec-reviewer)` | `invoke_subagent` (`TypeName: "self"`) with the filled `spec-reviewer-prompt.md` template |
-| `Task tool (superpowers:code-reviewer)` | `invoke_subagent` (`TypeName: "self"`) with the filled `code-reviewer.md` template |
-| `Task tool (superpowers:code-quality-reviewer)` | `invoke_subagent` (`TypeName: "self"`) with the filled `code-quality-reviewer-prompt.md` template |
-| `Task tool (general-purpose)` with inline prompt | `invoke_subagent` (`TypeName: "self"` or `"research"`) with your inline prompt |
-
-### Prompt filling
-
-Skills provide prompt templates with placeholders like `{WHAT_WAS_IMPLEMENTED}` or `[FULL TEXT of task]`. Fill all placeholders and pass the complete prompt as `Prompt` in `invoke_subagent` (with `Model: "inherit"` unless requested otherwise). The prompt template itself contains the agent's role, review criteria, and expected output format.
-
-### Parallel dispatch
-
-Antigravity supports parallel subagent dispatch via the `Subagents` array in a single `invoke_subagent` call. When a skill asks you to dispatch multiple independent subagent tasks in parallel, pass all independent entries in `Subagents` together. Keep dependent tasks sequential, but do not serialize independent subagent tasks just to preserve a simpler history.
-
-## Additional Antigravity tools
-
-These tools are available in Antigravity and map naturally into workflow steps:
-
-| Tool | Purpose |
-|------|---------|
-| `list_dir` / `view_file_outline` / `view_code_item` | Inspect directories, file symbols, and specific functions/classes |
-| `ask_question` | Request structured multiple-choice input from the user |
-| `manage_task` | Check status, send input, or kill background commands |
-| `define_subagent` / `send_message` / `manage_subagents` | Define custom subagents, message running/idle subagents, or manage their lifecycle |
+At the start of any multi-step task, create the task artifact listing every step of
+your plan. As you complete each step, edit the artifact to mark it done (`- [x]`).
+If the plan changes, update the checklist. Keep it current — it is your source of
+truth for what remains; once the conversation gets long, re-read it before starting
+each step.

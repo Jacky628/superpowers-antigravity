@@ -1,8 +1,8 @@
 # Superpowers 技能库详解
 
-本文档详细介绍 `skills/` 目录下所有技能的定义、使用方法和适用场景。
+本文档详细介绍 `skills/` 目录下所有 15 个技能的定义、使用方法和适用场景。
 
-> 对齐上游 Superpowers **v5.1.0**。规则文件用 `superpowers-rule.md`（替代上游 `CLAUDE.md`）；产物路径为 `docs/superpowers/specs/` 与 `docs/superpowers/plans/`；可视化头脑风暴未移植（保持纯文本流程）。
+> 对齐上游 Superpowers **v7.0.0**。规则文件支持 `GEMINI.md` / `AGENTS.md` / `superpowers-rule.md`；产物路径为 `docs/superpowers/specs/`、`docs/superpowers/plans/` 与 `.superpowers/sdd/<plan>/`。
 
 ---
 
@@ -10,7 +10,7 @@
 
 1. [brainstorming - 设计讨论](#1-brainstorming---设计讨论)
 2. [writing-plans - 编写计划](#2-writing-plans---编写计划)
-3. [executing-plans - 执行计划](#3-executing-plans---执行计划)
+3. [executing-plans - 执行计划（原生内联执行）](#3-executing-plans---执行计划原生内联执行)
 4. [subagent-driven-development - 子代理驱动开发](#4-subagent-driven-development---子代理驱动开发)
 5. [test-driven-development - 测试驱动开发](#5-test-driven-development---测试驱动开发)
 6. [systematic-debugging - 系统化调试](#6-systematic-debugging---系统化调试)
@@ -22,176 +22,99 @@
 12. [receiving-code-review - 接收代码审查](#12-receiving-code-review---接收代码审查)
 13. [using-superpowers - 使用技能系统](#13-using-superpowers---使用技能系统)
 14. [writing-skills - 编写技能](#14-writing-skills---编写技能)
+15. [diagnosing-superpowers - 会话诊断](#15-diagnosing-superpowers---会话诊断)
 
 ---
 
-## 1. brainstorming - 设计讨论
+## 1. brainstorming - 设计讨论 (v7.0 重构)
 
 ### 核心定义
-通过自然对话的方式，将模糊的想法转化为完整的设计规格。
+在动手构建任何东西之前，通过自然、单问题推进的对话，弄清楚用户**真正想要什么、以及为什么**，并将其转化为清晰的文字或设计文档。
 
 ### 适用场景
-- **必须使用**：任何创意性工作之前，包括创建功能、构建组件、添加功能或修改行为。
-- 在写任何代码之前，探索用户意图、需求和设计方案。
+- **必须使用**：任何创意性工作之前，包括创建功能、构建组件、添加功能、修改行为，乃至非软件项目规划。
 
 ### 硬性门禁 (HARD-GATE)
-在呈现设计并获得用户批准之前，**不得**调用任何实现技能、不得写代码、不得脚手架任何项目。无论项目看起来多简单都适用——"太简单无需设计"是最常造成返工的反模式。设计可以很短（几句话），但必须呈现并获批准。
+在用户批准完整描述（小改动在对话中确认，项目级需求在设计文档中确认）之前，**不得**构建任何内容（不得写产品代码、脚手架、安装依赖、创建项目或调用实现技能）。
+- **两项例外**：1) 用户明确选择跳过提问直接开始；2) 用户同意进行一次性的投石问路（Spike，标记为 throwaway，若要保留仍需回到门禁走流程）。
+- **项目设计文档获批后**：下一步唯一可调用的技能是 `writing-plans`。
 
-### 8 步检查清单（按顺序逐项创建 Todo 并完成）
-
-1.  **探索项目上下文**：检查文件、文档、最近提交。
-2.  **逐个提问澄清**：一次一个问题，聚焦目的 / 约束 / 成功标准；先评估范围，过大则先拆分为子项目。
-3.  **提出 2-3 个方案**：附权衡与推荐理由。
-4.  **分段呈现设计**：每段按复杂度伸缩（简单几句、复杂可达 200-300 字），逐段获用户确认；涵盖架构、组件、数据流、错误处理、测试。
-5.  **写设计文档**：保存至 `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` 并提交 git。
-6.  **spec 内联自审**：扫描占位符 / 内部矛盾 / 范围 / 歧义，就地修复（无需二次评审）。
-7.  **用户复核 spec**：请用户阅读已写入的 spec 文件，有改动则修复并重审。
-8.  **转入实现**：调用 `writing-plans` 技能创建实施计划。
-
-> **终点是 writing-plans**：brainstorming 之后唯一可调用的技能是 writing-plans，不要直接进入其他实现技能。
-
-### 核心原则
-- **一次一个问题**：不要用大量问题压垮用户
-- **YAGNI 原则**：从设计中移除所有不必要的功能
-- **逐步验证**：分段呈现设计，每段确认
-- **隔离与清晰**：将系统拆为各自单一职责、接口清晰、可独立理解和测试的小单元
-
-> 注：上游 v5 的「可视化头脑风暴」浏览器伴侣未移植到 Antigravity，本技能保持纯文本 / 对话式流程。
+### v7.0 核心流程
+1. **首条消息（Your First Message）**：一句话告知用户若想跳过提问可直接说；紧跟一个引导用户描述具体场景的开放式问题（不附选项菜单）。
+2. **对话与技术栈归属（How It Gets Made）**：尽早明确平台、语言、核心库等决策哪些由用户把控、哪些交由 Agent 决定（Agent 决定的部分需显式标明为 Agent 的选择）。
+3. **分段复述（Play It Back）**：每理解一部分（约 200-300 字）就向用户复述一次，标明猜测项，并询问是否有误或遗漏。
+4. **按需提供可视化伴侣（Visual Companion）**：当涉及界面布局、流程对比或结构图，"看比读更直观"时，即时提议启动带 Session Key 鉴权的浏览器可视化伴侣（`visual-companion.md`）。
+5. **动态体量分级（Size the Work）**：
+   - **清晰微任务**：直接完成并汇报。
+   - **小改动**：在对话中确认描述后直接按标准工作流实现。
+   - **项目级需求**：写入 `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` 并提交。
+6. **实现者视角审查（Builder Check）**：派发全新子代理执行 `builder-check-prompt.md`，将问题分为"已回答 / 细枝末节（Agent 自行裁决并标注）/ 必须由用户决定（合并为单轮提问）"，更新文档后交由用户批准。
 
 ---
 
-## 2. writing-plans - 编写计划
+## 2. writing-plans - 编写计划 (v6.4 重构)
 
 ### 核心定义
-将规格或需求转化为详尽的实施计划，假设执行者对代码库毫无上下文。
+将已确认的设计规格转化为聚焦**决策、接口契约与测试断言**的实施计划（计划记录决策，而非照抄全量代码）。
 
 ### 适用场景
-- 当你有规格或需求，准备进行多步骤任务时使用。
-- **在动手写代码之前**使用。
+- 当多步骤任务已有规格或明确需求，**在动手写代码之前**使用。
 
-### 任务粒度
-每个步骤应是一个原子操作（2-5 分钟完成）：
-- "写失败的测试" - 一个步骤
-- "运行测试确认失败" - 一个步骤
-- "实现最小代码使测试通过" - 一个步骤
-- "运行测试确认通过" - 一个步骤
-- "提交" - 一个步骤
+### 核心设计（v6.4+）
+- **Global Constraints（全局约束块）**：原样摘录绑定所有任务的规则（版本下限、依赖限制、命名与精确常量），确保下游实现者与审查者可见。
+- **Interfaces（任务级接口契约块）**：明确每个任务消费和产出的精确函数签名、类型与模块边界。
+- **Review Focus（审查焦点）**：列出最多 5 个规格隐含但易被漏测的边界输入或故障模式，并绑定到对应任务的测试中。
+- **What a Step Contains（步骤内容准则）**：测试步骤给出测试名与断言；代码步骤给出文件路径、精确签名与规格值（仅在签名无法决定的复杂算法处才写代码体）；验证步骤给出命令与预期通过输出。
+- **比例自检（Self-Review）**：计划长度不应是规格文档的数倍；若大段代码块占主导，将其精简为签名与测试断言。
 
-### 计划文档结构
-
-```markdown
-# [功能名称] Implementation Plan
-
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (推荐) 或 superpowers:executing-plans 逐任务实现。步骤使用复选框 (`- [ ]`) 语法便于追踪。
-
-**Goal:** [一句话描述目标]
-**Architecture:** [2-3 句话介绍方法]
-**Tech Stack:** [关键技术/库]
+### 输出路径与用户审阅门禁
+- 保存至 `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`。
+- **必须先请用户审阅保存后的计划文件**，获批后再推荐两种执行模式之一（`subagent-driven-development` 或 `executing-plans`）并说明各自的成本与推荐理由。
 
 ---
 
-### Task N: [组件名称]
-
-**Files:**
-- Create: `exact/path/to/file.py`
-- Modify: `exact/path/to/existing.py:123-145`
-- Test: `tests/exact/path/to/test.py`
-
-**Step 1: 写失败的测试**
-[代码]
-
-**Step 2: 运行测试验证失败**
-Run: `pytest tests/path/test.py::test_name -v`
-Expected: FAIL with "function not defined"
-
-**Step 3: 写最小实现**
-[代码]
-
-**Step 4: 运行测试验证通过**
-...
-
-**Step 5: 提交**
-...
-```
-
-### 输出路径
-计划保存至：`docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
-
-### 完成后的两种执行方式
-1.  **subagent-driven-development**（推荐）：当前会话、每任务派遣独立子代理、上下文隔离。
-2.  **executing-plans**：分批执行 + 人工检查点（可在独立会话中进行）。
-
----
-
-## 3. executing-plans - 执行计划
+## 3. executing-plans - 执行计划（原生内联执行，v6.4 重构）
 
 ### 核心定义
-加载计划，批量执行任务，在批次之间向用户汇报进度并等待反馈。
+在当前会话内，按照与子代理驱动开发（SDD）相同的工作区账本、TDD 纪律和停止规则，由主会话亲自连续实现所有任务，并在最后派发一次全分支代码审查。
 
 ### 适用场景
-- 当你已有书面实施计划，需要在 **独立会话** 中执行时使用。
+- 希望以更低的 Token 成本执行实施计划（无需为每个任务单独派发实现与审查子代理）。
 
 ### 工作流程
-
-1.  **加载与审查计划**：读取计划文件，审查并提出疑问。
-2.  **批量执行**：默认每批 3 个任务。
-    - 标记为 `in_progress`
-    - 按步骤精确执行
-    - 运行验证命令
-    - 标记为 `completed`
-3.  **汇报**："完成批次，等待反馈。"
-4.  **继续**：根据反馈调整，执行下一批次。
-5.  **收尾**：所有任务完成后，使用 `finishing-a-development-branch` 技能。
-
-### 何时停止并请求帮助
-- 遇到阻塞（缺少依赖、测试失败、指令不清）
-- 计划有重大缺漏
-- 无法理解某条指令
-- 验证反复失败
-
-**核心原则**：宁可停下来问，也不要猜测。
+1. **计划预检（Pre-Flight）**：扫描计划内部冲突或潜在缺陷，记录裁决并初始化 `.superpowers/sdd/<plan>/` 工作区账本。
+2. **逐任务内联执行**：
+   - 运行 `bash scripts/task-start` 登记任务开始。
+   - 严格按 TDD（先红后绿）完成实现与验证。
+   - 运行 `bash scripts/task-done` 登记测试命令与通过证据。
+3. **连续执行不中断**：不在任务之间停下来询问"是否继续"，仅在遇到破坏性或不可逆阻塞时才请求人类介入。
+4. **终局全分支审查**：所有任务完成后，在最强模型上派发一次全分支审查子代理，修复发现的问题后转入 `finishing-a-development-branch`。
 
 ---
 
-## 4. subagent-driven-development - 子代理驱动开发
+## 4. subagent-driven-development - 子代理驱动开发 (v6.0~v7.0 重构)
 
 ### 核心定义
-通过为每个任务派遣独立的子代理来执行计划，并在每个任务后进行两阶段审查。
-
-### 适用场景
-- 当你有实施计划，且任务之间相互独立。
-- 希望在 **当前会话** 中快速迭代执行。
+为每个任务（或同类微任务批次）派遣上下文隔离的实现子代理，随后派遣单次只读审查子代理同时完成**规格合规性**与**代码质量**双项裁决，并通过 `.superpowers/sdd/<plan>/` 文件化交接与进度账本实现高可靠、低成本的自治执行。
 
 ### 与 `executing-plans` 的区别
-| 特点     | subagent-driven-development  | executing-plans        |
-| -------- | ---------------------------- | ---------------------- |
-| 会话     | 当前会话                     | 独立会话               |
-| 上下文   | 每个任务独立子代理（无污染） | 共享上下文（可能累积） |
-| 审查     | 两阶段自动审查               | 批次间人工检查点       |
-| 迭代速度 | 更快                         | 依赖人工反馈           |
+| 特点 | subagent-driven-development | executing-plans (Native) |
+| :--- | :--- | :--- |
+| 执行主体 | 每任务派遣独立实现子代理（零上下文污染） | 当前会话亲自连续实现所有任务 |
+| 审查机制 | 每任务单次 `task-reviewer`（双结论）+ 终局全分支审查 | 终局派发一次全分支审查 |
+| 交接方式 | `sdd-workspace` / `task-brief` / `review-package` 文件化交接 | 共享 `.superpowers/sdd/<plan>/` 账本 |
+| Token 成本 | 较高（适合复杂、多任务大计划） | 最低（适合中小型计划或预算敏感场景） |
 
-### 工作流程
-
-1.  **提取任务**：读取计划，提取所有任务及其完整文本。
-2.  **派遣实现子代理**：将任务文本和上下文发给子代理。
-3.  **子代理实现**：实现、测试、提交、自我审查。
-4.  **派遣规格审查子代理**：确认代码是否符合规格。
-5.  **派遣代码质量审查子代理**：评估代码质量。
-6.  **标记完成**：两阶段审查通过后标记任务完成。
-7.  **循环至所有任务完成**。
-8.  **最终代码审查**：派遣最终审查子代理。
-9.  **使用 `finishing-a-development-branch` 收尾**。
-
-### 核心原则
-- **从不跳过审查**（无论是规格审查还是代码质量审查）。
-- **审查发现问题**：实现子代理修复 → 重新审查 → 直到通过。
-- **规格审查必须在代码质量审查之前**。
-- **持续执行**：不要在任务之间停下来征求用户确认。一口气执行计划中所有任务；唯一停止理由是无法解决的 BLOCKED、真正阻碍进展的歧义、或全部完成。"要继续吗？" 之类的进度汇报是浪费时间。
-- **为何用子代理**：子代理拥有隔离的上下文，绝不继承你会话的历史；你精确构造它需要的指令与上下文，既让它专注成功，也为你自己保留协调用的上下文。
+### 核心机制（v6.0~v7.0）
+1. **计划级隔离工作区（Plan-Scoped Workspace）**：通过 `scripts/sdd-workspace` 在 `.superpowers/sdd/<plan-basename>/` 下维护进度账本、任务简报（`task-brief`）和审查包（`review-package`），避免粘贴长 diff 污染主上下文。
+2. **单 Reviewer 双结论（`task-reviewer-prompt.md`）**：每个任务只需派发 1 个只读审查子代理，读取 diff 文件后同时输出 Spec 合规性裁决与代码质量裁决（含 `⚠️` 无法仅凭 diff 验证的条目交由 Controller 核查）。
+3. **唤醒修复与增量复审（`re-review-prompt.md`）**：若审查发现问题，唤醒原实现子代理修复并重跑相关测试，随后使用 `re-review-prompt.md` 仅针对修复点进行增量复审（设 5 轮熔断器）。
+4. **禁止预判与诱导**：严禁 Controller 在派发审查时暗示 Reviewer 忽略某问题或预先降低严重级别。
+5. **终局全分支审查**：全部任务通过后，派发一次全分支审查并清理临时 `.superpowers/sdd/<plan>/` 目录，随后转入 `finishing-a-development-branch`。
 
 ---
 
-## 5. test-driven-development - 测试驱动开发
+## 5. test-driven-development - 测试驱动开发 (v6.4 更新)
 
 ### 核心定义
 **先写测试，看它失败，再写最小代码使其通过。**
@@ -202,29 +125,19 @@ Expected: FAIL with "function not defined"
 ```
 先写了代码？**删除它，重新开始。**
 
-### 适用场景
-- **始终适用于**：新功能、Bug 修复、重构、行为变更。
-- **例外（需用户许可）**：一次性原型、生成代码、配置文件。
+### RED-GREEN-REFACTOR 循环与 v6.4 增强
+| 阶段 | 行动 | 验证要求 |
+| :--- | :--- | :--- |
+| **RED** | 写一个失败的测试 | 运行测试，确认因预期功能缺失而失败（并在报告中记录 RED 证据） |
+| **GREEN** | 写最小代码使测试通过 | 运行**整个项目的测试套件**（不仅是当前测试文件），确认全绿且无相邻回归 |
+| **REFACTOR** | 重构代码，保持测试绿色 | 再次运行全量测试套件确认仍通过 |
 
-### RED-GREEN-REFACTOR 循环
-
-| 阶段         | 行动                   | 验证                         |
-| ------------ | ---------------------- | ---------------------------- |
-| **RED**      | 写一个失败的测试       | 运行测试，确认失败（非报错） |
-| **GREEN**    | 写最小代码使测试通过   | 运行测试，确认通过           |
-| **REFACTOR** | 重构代码，保持测试绿色 | 运行测试，确认仍通过         |
-
-### 常见借口与现实
-
-| 借口                    | 现实                                   |
-| ----------------------- | -------------------------------------- |
-| "太简单不用测"          | 简单代码也会出错。测试只需 30 秒。     |
-| "我之后再测"            | 之后写的测试立刻通过，什么都证明不了。 |
-| "手动测过了"            | 手动测试无法记录、无法复现、容易遗漏。 |
-| "删掉 X 小时工作太浪费" | 沉没成本谬误。不可信的代码就是技术债。 |
-
-### 核心原则
-**如果你没见过测试失败，你就不知道它测的是不是对的。**
+### 编写好测试的六条准则（`writing-good-tests.md`）
+- 替代了旧版 `testing-anti-patterns.md`，强调**可证伪性（Falsifiability）**：
+  1. 能明确指出哪处生产代码改动会让该测试失败。
+  2. 测试期望值必须独立于被测代码推导，拒绝"变更检测器陷阱"（Change-Detector Trap）。
+  3. 严禁对脚本、技能或 Prompt 做伪造可证伪性的纯字符串存在性测试（String-Presence Trap，应测试真实行为而非 grep 文本）。
+  4. 闭合突变检验（Mutation Check）：验证完 Green 后思考若破坏核心逻辑测试是否真的会挂。
 
 ---
 
@@ -584,21 +497,39 @@ description: Use when [触发条件和症状]
 
 ---
 
+## 15. diagnosing-superpowers - 会话诊断 (v6.4 新增)
+
+### 核心定义
+当一次会话出现异常（如重复劳动、忽略了计划、某个技能应当触发却未触发、Token 消耗远超预期）时，通过读取磁盘上的会话日志（Transcript）定位根因，并输出每一条结论均带有 `path:line` 证据链的诊断报告。
+
+### 适用场景
+- 用户要求"弄清楚这次（或某次历史）会话里 Superpowers 出了什么问题"。
+- 需要生成脱敏复现包（Scrubbed Bundle）或起草带证据链的 GitHub Issue。
+
+### 工作流程
+1. **定位会话（Session Discovery）**：遵循 `references/session-discovery.md` 找到当前或目标历史会话的 Transcript 文件，并严格遵守 `references/context-safety.md`（禁止将长日志整段读入主上下文）。
+2. **多维专项分析（Analyst Prompts）**：按问题类型使用 `prompts/` 下的分析模板（`skill-timeline`、`plan-adherence`、`repeated-work`、`stumbles`、`cost-and-time`、`quality-evidence`、`request-conflicts`）派发分析子代理提取证据。
+3. **出具诊断报告（`templates/report.md`）**：汇总问题时间线与根因，所有结论必须附带 `path:line` 原始日志引用。
+4. **可选脱敏打包与 Issue 起草**：遵循 `references/redaction-policy.md`（`prompts/scrub.md` + `scrub-audit.md`）对敏感信息脱敏并保留引用证据完整，经用户批准后导出或提交。
+
+---
+
 ## 技能使用总结
 
-| 技能                           | 何时使用                 | 核心价值                |
-| ------------------------------ | ------------------------ | ----------------------- |
-| brainstorming                  | 任何创意工作开始前       | 需求理清、设计验证      |
-| writing-plans                  | 有规格后，写代码前       | 清晰的执行路线图        |
-| executing-plans                | 有计划，在独立会话中执行 | 批量执行 + 人工检查点   |
-| subagent-driven-development    | 有计划，当前会话快速迭代 | 独立子代理 + 两阶段审查 |
-| test-driven-development        | 实现任何功能或修复 Bug   | 质量保证、回归预防      |
-| systematic-debugging           | 遇到任何 Bug 或意外行为  | 根因定位、避免瞎猜      |
-| verification-before-completion | 声称完成之前             | 证据驱动、诚实汇报      |
-| using-git-worktrees            | 需要隔离开发环境时       | 并行开发、干净基线      |
-| finishing-a-development-branch | 实施完成，测试通过       | 有序收尾、清理工作区    |
-| dispatching-parallel-agents    | 多个独立问题需同时处理   | 并行效率、节省时间      |
-| requesting-code-review         | 完成任务后、合并前       | 质量门禁、问题发现      |
-| receiving-code-review          | 收到审查反馈后           | 技术评估、理性处理      |
-| using-superpowers              | 任何对话开始时           | 技能系统入口            |
-| writing-skills                 | 创建/编辑技能时          | 技能质量、可测试性      |
+| 技能                           | 何时使用                       | 核心价值                        |
+| ------------------------------ | ------------------------------ | ------------------------------- |
+| brainstorming                  | 任何创意或新功能工作开始前     | 意图澄清、动态分级、Builder 审查 |
+| writing-plans                  | 有规格后，写代码前             | 聚焦决策、接口契约与审查焦点    |
+| executing-plans                | 有计划，希望低成本连续内联执行 | 账本追踪 + 原生连续执行 + 终局审查 |
+| subagent-driven-development    | 有计划，当前会话高可靠自治迭代 | 独立子代理 + 单次双结论审查     |
+| test-driven-development        | 实现任何功能或修复 Bug         | 红绿重构、全量套件验证、可证伪性 |
+| systematic-debugging           | 遇到任何 Bug 或意外行为        | 四阶段根因定位、杜绝瞎猜        |
+| verification-before-completion | 声称完成或提交之前             | 跑命令拿证据、诚实汇报          |
+| using-git-worktrees            | 需要隔离开发环境时             | 项目内 `.worktrees/` 隔离开发   |
+| finishing-a-development-branch | 实施完成，测试通过             | 安全收尾、跨平台 PR、保护未跟踪文件 |
+| dispatching-parallel-agents    | 多个独立问题需同时处理         | 并行派发子代理、节省时间        |
+| requesting-code-review         | 完成任务后、合并前             | 质量门禁、显式记录未决判断      |
+| receiving-code-review          | 收到审查反馈后                 | 技术核实、拒绝盲从              |
+| using-superpowers              | 任何对话开始时                 | 技能系统入口与平台工具映射      |
+| writing-skills                 | 创建/编辑技能时                | 文档 TDD、形式匹配与微测试      |
+| diagnosing-superpowers         | 会话表现异常或技能未按预期工作 | 基于 Transcript 证据链诊断根因  |

@@ -17,17 +17,26 @@ Superpowers 是一套结构化的软件开发工作流，通过一系列互相�
 Antigravity 的全局与工作区级自定义位置不同（路径以官方文档为准）：
 
 **全局安装（所有项目可用，推荐）**
-- **Skills** → 复制 `skills/*` 到 `~/.gemini/antigravity/skills/`（Agent 按名称自动发现）。
+- **Skills** → 复制 `skills/*` 到 `~/.gemini/antigravity/skills/`（同时建议同步至 `~/.gemini/config/skills/` 以兼容 Antigravity 2.0 / CLI 全局发现）。
+  > ⚠️ 注意：请复制 `skills/` 下的**各个子目录**，不要把仓库根目录直接拷入导致出现 `skills/skills/` 双层嵌套。
 - **Workflows** → 复制 `workflows/*.md` 到 `~/.gemini/antigravity/global_workflows/`（注意是 `global_workflows`，斜杠命令名 = 文件名）。
-- **Rules** → 全局规则的唯一位置是 `~/.gemini/GEMINI.md`；把本仓库 `GEMINI.md` 中 `<!-- BEGIN/END superpowers -->` 之间的段落**追加**进去（保留你已有内容）。
+- **Rules** → 全局规则位置是 `~/.gemini/GEMINI.md`；把本仓库 `GEMINI.md` 中 `<!-- BEGIN/END superpowers -->` 之间的段落**追加**进去（保留你已有内容）。
 
-**工作区级安装（按项目隔离）**
-- 将 `rules/`、`workflows/` 放到项目根目录的 `.agent/`（即 `<workspace>/.agent/rules/`、`<workspace>/.agent/workflows/`）；Skills 仍走上面的全局目录。
+```bash
+# 一键全局安装命令（在仓库根目录执行）
+mkdir -p ~/.gemini/antigravity/skills ~/.gemini/config/skills ~/.gemini/antigravity/global_workflows
+cp -r skills/* ~/.gemini/antigravity/skills/
+cp -r skills/* ~/.gemini/config/skills/
+cp -f workflows/*.md ~/.gemini/antigravity/global_workflows/
+```
+
+**工作区级安装（按项目隔离，优先级高于全局）**
+- 将 `skills/*`、`rules/*`、`workflows/*` 放到项目根目录的 `.agent/`（或 `.agents/`）对应子目录中（即 `<workspace>/.agent/skills/`、`<workspace>/.agent/rules/`、`<workspace>/.agent/workflows/`）。
 
 **刷新配置**：安装或更新后，前往 Antigravity 右上角 `...` → **Customizations** 点击 **Refresh**；若新文件不显示，完全重启 Antigravity。
 
 ### 2. 自动技能加载 (Skills)
-Antigravity 会自动检索 `.agent/skills/` 目录。在处理任务时，Agent 会根据需要自动加载并遵循相关技能指令。
+Antigravity 会按优先级自动检索工作区 `.agent/skills/`（或 `.agents/skills/`）及全局 `~/.gemini/config/skills/`、`~/.gemini/antigravity/skills/` 目录。在处理任务时，Agent 会根据需要自动加载并遵循相关技能指令。
 - **强制规则**：当你开始开发或调试时，Agent 会根据上下文自动读取并执行对应的 `SKILL.md`。
 
 ### 3. 斜杠命令 (Workflows)

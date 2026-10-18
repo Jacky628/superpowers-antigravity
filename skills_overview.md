@@ -491,7 +491,7 @@ git check-ignore -q .worktrees 2>/dev/null || git check-ignore -q worktrees 2>/d
 若 `superpowers-rule.md` 说"不要用 TDD"而技能说"始终 TDD"，听用户的。
 
 ### 平台适配 (Antigravity)
-技能文档使用 Claude Code 的工具名；Antigravity 基于 Gemini 系工具，遇到工具名时按 `using-superpowers/references/antigravity-tools.md` 映射（如 `Read`→`read_file`、`Edit`→`replace`、`Bash`→`run_shell_command`、`Skill`→`activate_skill`）。
+技能文档使用 Claude Code 的工具名；Antigravity 基于 Gemini 系工具，遇到工具名时按 `using-superpowers/references/antigravity-tools.md` 映射（如 `Read`→`view_file`、`Write`→`write_to_file`、`Edit`→`replace_file_content`、`Bash`→`run_command`、`Task`→`invoke_subagent`、`Skill`→通过 `view_file` 读取对应 `SKILL.md`）。
 
 ### 子代理豁免
 若你本身是被派遣来执行特定任务的子代理（SUBAGENT-STOP），跳过本技能。

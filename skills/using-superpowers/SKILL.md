@@ -27,13 +27,13 @@ If `superpowers-rule.md` says "don't use TDD" and a skill says "always use TDD,"
 
 ## How to Access Skills
 
-**In Antigravity:** Skills live under `.agent/skills/`. Antigravity auto-discovers them and loads the relevant `SKILL.md` based on the task context — read and follow it directly. Workflows under `.agent/workflows/` are invoked as slash commands (e.g. `/brainstorm`).
+**In Antigravity:** Skills are auto-discovered from `~/.gemini/antigravity/skills/`, `~/.gemini/config/skills/`, or workspace `.agent/skills/` (`.agents/skills/`) and listed in the system prompt `<skills>` block. When a skill applies, read its `SKILL.md` directly via `view_file` using the exact path provided in `<skills>`. Workflows under `~/.gemini/antigravity/global_workflows/` or `.agent/workflows/` are invoked as slash commands (e.g. `/brainstorm`).
 
 **In other environments:** Check your platform's documentation for how skills are loaded.
 
 ## Platform Adaptation
 
-Skills use Claude Code tool names. Antigravity runs on Gemini-family tools, so when a skill references a Claude Code tool, use the Antigravity equivalent — see `references/antigravity-tools.md` for the full mapping (e.g. `Read`→`read_file`, `Edit`→`replace`, `Bash`→`run_shell_command`, `Skill`→`activate_skill`).
+Skills use Claude Code tool names. Antigravity runs on Gemini-family tools, so when a skill references a Claude Code tool, use the Antigravity equivalent — see `references/antigravity-tools.md` for the full mapping (e.g. `Read`→`view_file`, `Write`→`write_to_file`, `Edit`→`replace_file_content`, `Bash`→`run_command`, `Task`→`invoke_subagent`, `Skill`→read `SKILL.md` via `view_file`).
 
 # Using Skills
 

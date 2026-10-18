@@ -1,7 +1,7 @@
 ---
 description: 启动需求头脑风暴，在编写代码前明确设计方案
 ---
-1. 加载并运行 `.agent/skills/brainstorming/SKILL.md` 指令。
+1. 加载并遵循 `brainstorming` 技能（优先读取 `<skills>` 中已发现的路径，如 `~/.gemini/antigravity/skills/brainstorming/SKILL.md` 或 `.agent/skills/brainstorming/SKILL.md`）。
 2. 严格遵守 HARD-GATE：在用户确认设计前，不写任何代码、不调用任何实现技能。
 3. 按照 SKILL 中的 8 步检查清单逐步推进：探索上下文 → 逐个提问 → 提出 2-3 个方案 → 分段呈现设计并逐段获得确认。
 4. 将确认后的设计写入 `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` 并提交。
